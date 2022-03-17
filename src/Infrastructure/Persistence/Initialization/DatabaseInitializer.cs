@@ -55,6 +55,12 @@ internal class DatabaseInitializer : IDatabaseInitializer
 
     private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)
     {
+        if (_tenantDbContext.Database.IsInMemory())
+        {
+            await SeedRootTenantAsync(cancellationToken);
+            return;
+        }
+
         if (_tenantDbContext.Database.GetPendingMigrations().Any())
         {
             _logger.LogInformation("Applying Root Migrations.");

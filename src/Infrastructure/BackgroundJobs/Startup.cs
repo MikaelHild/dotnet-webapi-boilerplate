@@ -2,6 +2,7 @@ using FSH.WebApi.Infrastructure.Common;
 using Hangfire;
 using Hangfire.Console;
 using Hangfire.Console.Extensions;
+using Hangfire.MemoryStorage;
 using Hangfire.MySql;
 using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
@@ -46,6 +47,8 @@ internal static class Startup
     private static IGlobalConfiguration UseDatabase(this IGlobalConfiguration hangfireConfig, string dbProvider, string connectionString, IConfiguration config) =>
         dbProvider.ToLowerInvariant() switch
         {
+            DbProviderKeys.InMemory =>
+                hangfireConfig.UseMemoryStorage(),
             DbProviderKeys.Npgsql =>
                 hangfireConfig.UsePostgreSqlStorage(connectionString, config.GetSection("HangfireSettings:Storage:Options").Get<PostgreSqlStorageOptions>()),
             DbProviderKeys.SqlServer =>

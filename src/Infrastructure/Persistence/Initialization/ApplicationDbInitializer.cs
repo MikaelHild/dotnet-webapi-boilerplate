@@ -22,6 +22,12 @@ internal class ApplicationDbInitializer
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
+        if (_dbContext.Database.IsInMemory())
+        {
+            await _dbSeeder.SeedDatabaseAsync(_dbContext, cancellationToken);
+            return;
+        }
+
         if (_dbContext.Database.GetMigrations().Any())
         {
             if ((await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).Any())

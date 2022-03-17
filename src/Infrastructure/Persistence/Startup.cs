@@ -56,6 +56,8 @@ internal static class Startup
     {
         switch (dbProvider.ToLowerInvariant())
         {
+            case DbProviderKeys.InMemory:
+                return builder.UseInMemoryDatabase(connectionString);
             case DbProviderKeys.Npgsql:
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 return builder.UseNpgsql(connectionString, e =>

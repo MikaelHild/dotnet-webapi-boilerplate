@@ -20,8 +20,8 @@
       "WorkerCount": 5
     },
     "Storage": {
-      "StorageProvider": "mssql",
-      "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True",
+      "StorageProvider": "InMemory",
+      "ConnectionString": "Data Source=InMemorySample;Mode=Memory;Cache=Shared",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
         "QueuePollInterval": "00:00:01",
