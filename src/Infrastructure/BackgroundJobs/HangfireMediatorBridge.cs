@@ -36,13 +36,28 @@ internal class HangfireMediatorBridge
     // This method can be used for "Enqueue"-ing or "Schedule"-ing commands. In this case the
     // current tenant and current user are handled by FSHJobFilter and FSHJobActivator
     [DisplayName("{0}")]
-    public Task SendCommand(string jobName, ICommand request, CancellationToken ct)
+    public Task ExecuteCommand(string jobName, ICommand request, CancellationToken ct)
     {
+        var test = request.ToString();
         request.JobId = _performingContext.BackgroundJob.Id;
         return _mediator.Send(request, ct);
     }
 
-    
+    [DisplayName("{0}")]
+    public async Task ScheduleCommand(string jobName, string tenantId, ICommand request, CancellationToken ct)
+    {
+        _tenantContextAccessor.MultiTenantContext =
+           await _tenantStore.TryGetAsync(tenantId) is { } tenantInfo
+               ? new MultiTenantContext<FSHTenantInfo>() { TenantInfo = tenantInfo }
+               : throw new InvalidOperationException("Invalid tenant.");
+
+        _currentUserInitializer.SetCurrentUserId(request.CreatedByUserId);
+
+        request.JobId = _performingContext.BackgroundJob.Id;
+
+        await _mediator.Send(request, ct);
+    }
+
     // This method has to be used for recurring jobs (with "AddOrUpdate") because in that case
     // FSHJobFilter.OnCreating is called outside of the context of a request (there's no HttpContext available)
     // so you have to supply tenantId and userId which are then resolved again here (inside the hangfire job)

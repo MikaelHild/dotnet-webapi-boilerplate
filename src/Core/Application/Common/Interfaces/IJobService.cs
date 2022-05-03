@@ -12,7 +12,6 @@ public interface IJobService : ITransientService
     string Enqueue(Expression<Func<Task>> methodCall);
     string Enqueue<T>(Expression<Action<T>> methodCall);
     string Enqueue<T>(Expression<Func<T, Task>> methodCall);
-
     string Schedule(Expression<Action> methodCall, TimeSpan delay);
     string Schedule(Expression<Func<Task>> methodCall, TimeSpan delay);
     string Schedule(Expression<Action> methodCall, DateTimeOffset enqueueAt);
@@ -27,5 +26,8 @@ public interface IJobService : ITransientService
 
     bool Requeue(string jobId);
     bool Requeue(string jobId, string fromState);
+
     string EnqueueCommand(ICommand command);
+    string EnqueueCommandAt(ICommand command, DateTimeOffset enqueueAt);
+    void EnqueueOrUpdateRecurringCommand(string recurringJobId, ICommand command, string cronExpression, TimeZoneInfo? timeZone = null, string queue = "default");
 }

@@ -3,17 +3,17 @@ using FSH.WebApi.Domain.Command;
 
 namespace FSH.WebApi.Application.Catalog.Commands
 {
-
-
     public class SearchCommandsRequest : PaginationFilter, IRequest<PaginationResponse<CommandDto>>
     {
+        public Guid? EntityId { get; set; }
     }
 
     public class CommandsBySearchSpec : EntitiesByPaginationFilterSpec<Command, CommandDto>
     {
         public CommandsBySearchSpec(SearchCommandsRequest request)
             : base(request) =>
-            Query.OrderBy(c => c.StartTime, !request.HasOrderBy());
+            Query.OrderBy(c => c.StartTime, !request.HasOrderBy())
+            .Where(p => p.EntityId.Equals(request.EntityId!.Value), request.EntityId.HasValue);
     }
 
     public class SearchCommandsRequestHandler : IRequestHandler<SearchCommandsRequest, PaginationResponse<CommandDto>>

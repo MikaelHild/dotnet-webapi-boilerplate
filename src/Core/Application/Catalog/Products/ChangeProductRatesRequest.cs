@@ -1,42 +1,26 @@
 ﻿using System;
-using FSH.WebApi.Application.Common.Commands;
 using FSH.WebApi.Domain.Command;
 
 namespace FSH.WebApi.Application.Catalog.Products
 {
-    public class ChangeProductRatesRequest : IRequest<string>
+    public class ChangeProductPricesRequest : IRequest<string>
     {
         public double PercentualChange { get; set; }
+        public Guid BrandId { get; set; }
 
-        public ChangeProductRatesRequest(double percentualChange)
+        public DateTime StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+
+        public ChangeProductPricesRequest(Guid brandId, double percentualChange, DateTime startTime, DateTime? endTime)
         {
             PercentualChange = percentualChange;
+            StartTime = startTime;
+            EndTime = endTime;
+            BrandId = brandId;
         }
     }
 
-    public class ChangeProductRatesCommand : ICommand
-    {
-
-        public double Percent { get; set; }
-        public string? JobId { get; set; }
-        public int RunId { get; set; }
-        public int? ParentRunId { get; set; }
-        public int SourceId { get; set; }
-        public CommandStatus Status { get; set; }
-        public string StartedByUser { get; set; }
-        public string StartedByUserName { get; set; }
-
-        public ChangeProductRatesCommand(double percentage, string userId, string userName)
-        {
-            Percent = percentage;
-            StartedByUser = userId;
-            StartedByUserName = userName;
-        }
-
-
-    }
-
-    public class ChangeProductRatesRequestHandler : IRequestHandler<ChangeProductRatesRequest, string>
+    public class ChangeProductRatesRequestHandler : IRequestHandler<ChangeProductPricesRequest, string>
     {
         private readonly IJobService _jobService;
         private readonly ICurrentUser _currentUser;
@@ -47,13 +31,30 @@ namespace FSH.WebApi.Application.Catalog.Products
             _currentUser = currentUser;
         }
 
-        public  Task<string> Handle(ChangeProductRatesRequest request, CancellationToken cancellationToken)
+        public  Task<string> Handle(ChangeProductPricesRequest request, CancellationToken cancellationToken)
         {
+
             var jobId = _jobService.EnqueueCommand(
                 new ChangeProductRatesCommand(
                     request.PercentualChange,
+                    request.BrandId,
                     _currentUser.GetUserId().ToString(),
                     _currentUser.Name));
+
+            if (request.EndTime.HasValue)
+            {
+
+                var futureJobId = _jobService.EnqueueCommandAt(
+                    new ChangeProductRatesCommand(
+                        percentage: request.PercentualChange,
+                        brandId: request.BrandId,
+                        userId: _currentUser.GetUserId().ToString(),
+                        userName: _currentUser.Name,
+                        revertChange: true
+                        ),
+                        request.EndTime.Value);
+                
+            }
 
             return Task.FromResult(jobId);
         }

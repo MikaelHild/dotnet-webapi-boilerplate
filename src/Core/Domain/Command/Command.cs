@@ -15,8 +15,9 @@ namespace FSH.WebApi.Domain.Command
         public string CommandType { get; private set; } = default!;
         public string CommandJson { get; private set; } = default!;
         public string JobId { get; private set; } = default!;
-        public int SourceId { get; private set; }
+        public CommandSource Source { get; private set; }
         public int? ParentRunId { get; private set; }
+        public string? EntityId { get; set; }
         public string StartedByUserId { get; private set; } = default!;
         public string StartedByUserName { get; private set; } = default!;
         public DateTimeOffset StartTime { get; private set; }
@@ -25,17 +26,17 @@ namespace FSH.WebApi.Domain.Command
         public string? Exception { get; private set; }
         public bool Dismissed { get; private set; }
 
-        public Command(string commandType, string commandJson, string jobId, int sourceId, int? parentRunId, string startedByUserId, string startedByUserName)
-            : this(commandType, commandJson, jobId, sourceId, parentRunId, startedByUserId,startedByUserName, DateTimeOffset.UtcNow, null, null, false)
+        public Command(string commandType, string commandJson, string jobId, CommandSource source, int? parentRunId, string startedByUserId, string startedByUserName)
+            : this(commandType, commandJson, jobId, source, parentRunId, startedByUserId,startedByUserName, DateTimeOffset.UtcNow, null, null, false)
         {
         }
 
-        public Command(string commandType, string commandJson, string jobId, int sourceId, int? parentRunId, string startedByUserId,string startedByUserName, DateTimeOffset startTime, string? errorMessage, string? exception, bool dismissed)
+        public Command(string commandType, string commandJson, string jobId, CommandSource source, int? parentRunId, string startedByUserId,string startedByUserName, DateTimeOffset startTime, string? errorMessage, string? exception, bool dismissed)
         {
             CommandType = commandType;
             CommandJson = commandJson;
             JobId = jobId;
-            SourceId = sourceId;
+            Source = source;
             ParentRunId = parentRunId;
             StartedByUserId = startedByUserId;
             StartedByUserName = startedByUserName;
@@ -62,6 +63,21 @@ namespace FSH.WebApi.Domain.Command
             }
         }
 
+    }
+
+    public enum CommandExecutionType
+    {
+        Once,
+        Recurring
+    }
+
+    public enum CommandRecurrenceType
+    {
+        Monthly,
+        Weekly,
+        Daily,
+        Hourly,
+        Minutes
     }
 }
 

@@ -45,25 +45,17 @@ public class ChangeProductRatesCommandHandler : IRequestHandler<ChangeProductRat
 
         var products = await _repository.ListAsync();
 
-        /* Products could be updated directly using the repository.
-         * 
-        foreach (var product in products)
-        {
-            product.Rate = product.Rate * request.Percent;
-        }
-
-        await _repository.SaveChangesAsync(cancellationToken);
-        */
-
         int index = 0;
         foreach (var product in products)
         {
+            var newPrice = request.RevertChange ? product.Rate / (decimal)request.Percent : product.Rate * (decimal)request.Percent;
+
             await _mediator.Send(
                 new UpdateProductRequest
                 {
                     Id = product.Id,
                     Name = product.Name,
-                    Rate = product.Rate * (decimal)request.Percent,
+                    Rate = newPrice,
                     BrandId = product.BrandId,
                     DeleteCurrentImage = false,
                 });

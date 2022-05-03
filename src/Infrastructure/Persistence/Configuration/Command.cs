@@ -8,10 +8,23 @@ namespace FSH.WebApi.Infrastructure.Persistence.Configuration
 {
     public class CommandConfig : IEntityTypeConfiguration<Command>
     {
-        public void Configure(EntityTypeBuilder<Command> builder) =>
+        public void Configure(EntityTypeBuilder<Command> builder)
+        {
             builder
-                .ToTable("Commands", SchemaNames.Catalog)
+                .ToTable("Commands", SchemaNames.Catalog);
+
+            builder
                 .IsMultiTenant();
+
+            builder
+                .Property(b => b.Source)
+                    .HasConversion(
+                        v => v.ToString(),
+                        v => (CommandSource)Enum.Parse(typeof(CommandSource), v));
+        }
+            
+
+        
     }
 }
 

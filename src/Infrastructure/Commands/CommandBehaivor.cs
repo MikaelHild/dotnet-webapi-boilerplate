@@ -20,43 +20,46 @@ namespace FSH.WebApi.Infrastructure.Commands
         {
             _commandRepo = commandRepo;
             _events = events;
-            _currentUser = _currentUser;
+            _currentUser = currentUser;
         }
 
-        public async Task<TResponse> Handle(TRequest command, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest commandRequest, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            var commandRun = new Command(
-                typeof(TRequest).FullName!,
-                JsonSerializer.Serialize(command),
-                command.JobId ?? throw new InvalidOperationException("JobId can't be null"),
-                command.SourceId,
-                command.ParentRunId,
-                command.StartedByUser,
-                command.StartedByUserName);
+            if (commandRequest.JobId == null) throw new InvalidOperationException("JobId can't be null");
 
-            await _commandRepo.AddAsync(commandRun);
+            //TODO: Implement CommandSource
+            var command = new Command(
+                commandType: typeof(TRequest).FullName!,
+                commandJson: JsonSerializer.Serialize((TRequest)commandRequest),
+                jobId: commandRequest.JobId,
+                source: CommandSource.Api,
+                parentRunId: commandRequest.ParentCommandId,
+                startedByUserId: commandRequest.CreatedByUserId,
+                startedByUserName: commandRequest.CreatedByUserName);
 
-            command.RunId = commandRun.Id;
+            await _commandRepo.AddAsync(command);
 
-            await _events.PublishAsync(new CommandStatusEvent(commandRun.JobId, commandRun.Id, commandRun.SourceId, commandRun.CommandType, CommandStatus.Running));
+            commandRequest.CommandId = command.Id;
+
+            await _events.PublishAsync(new CommandStatusEvent(command.JobId, command.Id, command.Source.ToString(), command.CommandType, CommandStatus.Running));
 
             try
             {
                 var response = await next();
 
-                commandRun.Finalize();
-                await _commandRepo.UpdateAsync(commandRun);
+                command.Finalize();
+                await _commandRepo.UpdateAsync(command);
 
-                await _events.PublishAsync(new CommandStatusEvent(commandRun.JobId, commandRun.Id, commandRun.SourceId, commandRun.CommandType, CommandStatus.Success));
+                await _events.PublishAsync(new CommandStatusEvent(command.JobId, command.Id, command.Source.ToString(), command.CommandType, CommandStatus.Success));
 
                 return response;
             }
             catch (Exception ex)
             {
-                commandRun.Finalize(ex);
-                await _commandRepo.UpdateAsync(commandRun);
+                command.Finalize(ex);
+                await _commandRepo.UpdateAsync(command);
 
-                await _events.PublishAsync(new CommandStatusEvent(commandRun.JobId, commandRun.Id, commandRun.SourceId, commandRun.CommandType, CommandStatus.Error, ex.Message));
+                await _events.PublishAsync(new CommandStatusEvent(command.JobId, command.Id, command.Source.ToString(), command.CommandType, CommandStatus.Error, ex.Message));
 
                 throw;
             }

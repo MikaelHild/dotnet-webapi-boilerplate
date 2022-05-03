@@ -29,11 +29,19 @@ public class HangfireService : IJobService
 
     public string EnqueueCommand(ICommand command)
     {
-        var test = command.ToString();
-        return BackgroundJob.Enqueue<HangfireMediatorBridge>(bridge => bridge.SendCommand(GetDisplayName(command),command, default));
-        //BackgroundJob.Enqueue<HangfireMediatorBridge>(bridge => bridge.Send(GetDisplayName(command), _currentTenant.Id, _currentUser.GetUserId().ToString(), command, default));
-    }
+        return BackgroundJob.Enqueue<HangfireMediatorBridge>(bridge => bridge.ExecuteCommand(GetDisplayName(command), command, default));
+    } 
         
+    public string EnqueueCommandAt(ICommand command, DateTimeOffset enqueueAt) =>
+        BackgroundJob.Schedule<HangfireMediatorBridge>(bridge => bridge.ExecuteCommand(GetDisplayName(command), command, default), enqueueAt);
+
+    public void EnqueueOrUpdateRecurringCommand(string recurringJobId, ICommand command, string cronExpression, TimeZoneInfo? timeZone = null, string queue = "default" ) =>
+        RecurringJob.AddOrUpdate<HangfireMediatorBridge>(
+            recurringJobId,
+            bridge => bridge.ScheduleCommand(GetDisplayName(command), _currentTenant.Id, command, default),
+            cronExpression ?? throw new ArgumentException(nameof(cronExpression)),
+            timeZone,
+            queue);
 
     private static string GetDisplayName(IRequest request) => $"{request.GetType().Name} {JsonSerializer.Serialize(request, request.GetType())}";
 

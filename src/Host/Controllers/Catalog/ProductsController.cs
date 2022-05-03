@@ -66,7 +66,7 @@ public class ProductsController : VersionedApiController
     [HttpPost("change-rates")]
     [MustHavePermission(FSHAction.Update, FSHResource.Products)]
     [OpenApiOperation("Changes the product rates using a percentage.","E.g. To increase the prices of all products by 10%: Percentage = 1.10")]
-    public Task<string> ChangeProductRates(ChangeProductRatesRequest request)
+    public Task<string> ChangeProductRates(ChangeProductPricesRequest request)
     {
         return Mediator.Send(request);
     }
