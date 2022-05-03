@@ -16,4 +16,12 @@
         <ProjectReference Include="..\Domain\Domain.csproj" />
         <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <None Remove="Common\Commands\" />
+      <None Remove="Catalog\Commands\" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Common\Commands\" />
+      <Folder Include="Catalog\Commands\" />
+    </ItemGroup>
 </Project>

@@ -62,4 +62,12 @@ public class ProductsController : VersionedApiController
         var result = await Mediator.Send(filter);
         return File(result, "application/octet-stream", "ProductExports");
     }
+
+    [HttpPost("change-rates")]
+    [MustHavePermission(FSHAction.Update, FSHResource.Products)]
+    [OpenApiOperation("Changes the product rates using a percentage.","E.g. To increase the prices of all products by 10%: Percentage = 1.10")]
+    public Task<string> ChangeProductRates(ChangeProductRatesRequest request)
+    {
+        return Mediator.Send(request);
     }
+}

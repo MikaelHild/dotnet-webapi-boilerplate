@@ -68,8 +68,12 @@
     <ItemGroup>
       <None Remove="Microsoft.EntityFrameworkCore.InMemory" />
       <None Remove="Hangfire.MemoryStorage" />
+      <None Remove="Commands\" />
     </ItemGroup>
     <ItemGroup>
         <None Update="Catalog\*.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Commands\" />
     </ItemGroup>
 </Project>

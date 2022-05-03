@@ -4,6 +4,7 @@
         <RootNamespace>FSH.WebApi.Host</RootNamespace>
         <AssemblyName>FSH.WebApi.Host</AssemblyName>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(RunConfiguration)' == 'Host' " />
     <ItemGroup>
         <PackageReference Include="FluentValidation.AspNetCore" Version="10.4.0" />
         <PackageReference Include="Hangfire.Console.Extensions.Serilog" Version="1.0.2" />

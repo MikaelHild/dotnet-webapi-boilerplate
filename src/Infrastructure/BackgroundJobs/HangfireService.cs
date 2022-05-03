@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.Json;
+using FSH.WebApi.Application.Common.Commands;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using Hangfire;
@@ -17,6 +18,7 @@ public class HangfireService : IJobService
 
     public string Enqueue(IRequest request) =>
         BackgroundJob.Enqueue<HangfireMediatorBridge>(bridge => bridge.Send(GetDisplayName(request), request, default));
+
     public void AddOrUpdate(string recurringJobId, IRequest request, string cronExpression, TimeZoneInfo? timeZone = null, string queue = "default") =>
         RecurringJob.AddOrUpdate<HangfireMediatorBridge>(
             recurringJobId,
@@ -24,6 +26,14 @@ public class HangfireService : IJobService
             cronExpression,
             timeZone,
             queue);
+
+    public string EnqueueCommand(ICommand command)
+    {
+        var test = command.ToString();
+        return BackgroundJob.Enqueue<HangfireMediatorBridge>(bridge => bridge.SendCommand(GetDisplayName(command),command, default));
+        //BackgroundJob.Enqueue<HangfireMediatorBridge>(bridge => bridge.Send(GetDisplayName(command), _currentTenant.Id, _currentUser.GetUserId().ToString(), command, default));
+    }
+        
 
     private static string GetDisplayName(IRequest request) => $"{request.GetType().Name} {JsonSerializer.Serialize(request, request.GetType())}";
 

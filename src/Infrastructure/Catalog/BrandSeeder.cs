@@ -18,7 +18,10 @@ public class BrandSeeder : ICustomSeeder
         _serializerService = serializerService;
         _logger = logger;
         _db = db;
+        SeedOrder = 0;
     }
+
+    public int SeedOrder { get; set; }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {

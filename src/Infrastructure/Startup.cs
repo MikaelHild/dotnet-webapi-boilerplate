@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.BackgroundJobs;
 using FSH.WebApi.Infrastructure.Caching;
+using FSH.WebApi.Infrastructure.Commands;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Cors;
 using FSH.WebApi.Infrastructure.FileStorage;
@@ -43,6 +44,7 @@ public static class Startup
             .AddPOLocalization(config)
             .AddMailing(config)
             .AddMediatR(Assembly.GetExecutingAssembly())
+            .AddTransient(typeof(IPipelineBehavior<,>), typeof(CommandBehavior<,>))
             .AddMultitenancy(config)
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)

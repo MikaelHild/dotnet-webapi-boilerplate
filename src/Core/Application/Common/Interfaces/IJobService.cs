@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using FSH.WebApi.Application.Common.Commands;
 
 namespace FSH.WebApi.Application.Common.Interfaces;
 
@@ -26,4 +27,5 @@ public interface IJobService : ITransientService
 
     bool Requeue(string jobId);
     bool Requeue(string jobId, string fromState);
+    string EnqueueCommand(ICommand command);
 }

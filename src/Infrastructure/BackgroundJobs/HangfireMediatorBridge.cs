@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
 using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Commands;
+using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.Multitenancy;
+using Hangfire.Server;
 using MediatR;
 
 namespace FSH.WebApi.Infrastructure.BackgroundJobs;
@@ -12,13 +15,17 @@ internal class HangfireMediatorBridge
     private readonly IMultiTenantStore<FSHTenantInfo> _tenantStore;
     private readonly IMultiTenantContextAccessor _tenantContextAccessor;
     private readonly ICurrentUserInitializer _currentUserInitializer;
+    private readonly ICurrentUser _currentUser;
+    private readonly PerformingContext _performingContext;
 
-    public HangfireMediatorBridge(IMediator mediator, IMultiTenantStore<FSHTenantInfo> tenantStore, IMultiTenantContextAccessor tenantContextAccessor, ICurrentUserInitializer currentUserInitializer)
+    public HangfireMediatorBridge(IMediator mediator, IMultiTenantStore<FSHTenantInfo> tenantStore, IMultiTenantContextAccessor tenantContextAccessor, ICurrentUserInitializer currentUserInitializer, PerformingContext performingContext, ICurrentUser currentUser)
     {
         _mediator = mediator;
         _tenantStore = tenantStore;
         _tenantContextAccessor = tenantContextAccessor;
         _currentUserInitializer = currentUserInitializer;
+        _performingContext = performingContext;
+        _currentUser = currentUser;
     }
 
     // This method can be used for "Enqueue"-ing or "Schedule"-ing jobs. In this case the
@@ -26,6 +33,16 @@ internal class HangfireMediatorBridge
     [DisplayName("{0}")]
     public Task Send(string jobName, IRequest request, CancellationToken ct) => _mediator.Send(request, ct);
 
+    // This method can be used for "Enqueue"-ing or "Schedule"-ing commands. In this case the
+    // current tenant and current user are handled by FSHJobFilter and FSHJobActivator
+    [DisplayName("{0}")]
+    public Task SendCommand(string jobName, ICommand request, CancellationToken ct)
+    {
+        request.JobId = _performingContext.BackgroundJob.Id;
+        return _mediator.Send(request, ct);
+    }
+
+    
     // This method has to be used for recurring jobs (with "AddOrUpdate") because in that case
     // FSHJobFilter.OnCreating is called outside of the context of a request (there's no HttpContext available)
     // so you have to supply tenantId and userId which are then resolved again here (inside the hangfire job)
@@ -44,4 +61,5 @@ internal class HangfireMediatorBridge
 
         await _mediator.Send(request, ct);
     }
+
 }
